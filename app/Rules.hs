@@ -19,6 +19,9 @@ data Prop = Var Name
 -- infixl 7 `:->:`
 -- infixl 6 `:<->:`
 
+(~) :: Prop -> Prop
+(~) (Not p) = p
+(~) p = Not p
 
 modusPonens :: Prop -> Prop -> Prop
 modusPonens (p :->: q) z 
@@ -28,10 +31,10 @@ modusPonens z (p :->: q) = modusPonens (p :->: q) z
 modusPonens _ _ = F 
 
 modusTollens ::Prop -> Prop -> Prop
-modusTollens (p :->: q) (Not z) 
-    | q == z = Not p
+modusTollens (p :->: q) (z) 
+    | q == (~) z = (~) p
     | otherwise = F
-modusTollens (Not z) (p :->: q) = modusTollens (p :->: q) (Not z) 
+modusTollens (z) (p :->: q) = modusTollens (p :->: q) (z) 
 modusTollens _ _ = F
 
 silogismeHipotetik ::Prop -> Prop -> Prop
@@ -42,10 +45,10 @@ silogismeHipotetik (p :->: q) (z :->: r)
 silogismeHipotetik _ _ = F
 
 silogismeDisjungtif ::Prop -> Prop -> Prop 
-silogismeDisjungtif (p :|: q) (Not z) 
-    | p == z = q
+silogismeDisjungtif (p :|: q) (z) 
+    | p == (~) z = q
     | otherwise = F
-silogismeDisjungtif (Not z) (p :|: q) = silogismeDisjungtif (p :|: q) (Not z) 
+silogismeDisjungtif (z) (p :|: q) = silogismeDisjungtif (p :|: q) (z) 
 silogismeDisjungtif _  _ = F
 
 simplifikasi :: Prop ->  Prop
@@ -53,5 +56,5 @@ simplifikasi (p :&: q) = p
 
 resolusi :: Prop -> Prop -> Prop 
 resolusi (p :|: q) (z :|: r) 
-    | z == (Not p) = q :|: r
+    | z == (~) p = q :|: r
     | otherwise = F 
