@@ -13,6 +13,12 @@ data Prop = Var Name
           | Prop :<->: Prop
           deriving (Eq, Ord, Show)
 
+-- Operator
+-- infixl 9 `:&:`
+-- infixl 8 `:||:`
+-- infixl 7 `:->:`
+-- infixl 6 `:<->:`
+
 
 modusPonens :: Prop -> Prop -> Prop
 modusPonens (p :->: q) z 
@@ -41,3 +47,11 @@ silogismeDisjungtif (p :|: q) (Not z)
     | otherwise = F
 silogismeDisjungtif (Not z) (p :|: q) = silogismeDisjungtif (p :|: q) (Not z) 
 silogismeDisjungtif _  _ = F
+
+simplifikasi :: Prop ->  Prop
+simplifikasi (p :&: q) = p
+
+resolusi :: Prop -> Prop -> Prop 
+resolusi (p :|: q) (z :|: r) 
+    | z == (Not p) = q :|: r
+    | otherwise = F 
