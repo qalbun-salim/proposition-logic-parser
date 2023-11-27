@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use tuple-section" #-}
 module Rules(
     modusPonens
 ) where
@@ -24,37 +26,55 @@ data Prop = Var Name
 (~) p = Not p
 
 modusPonens :: Prop -> Prop -> Prop
-modusPonens (p :->: q) z 
+modusPonens (p :->: q) z
     | p == z = q
     | otherwise = F
-modusPonens z (p :->: q) = modusPonens (p :->: q) z 
-modusPonens _ _ = F 
+modusPonens z (p :->: q) = modusPonens (p :->: q) z
+modusPonens _ _ = F
 
 modusTollens ::Prop -> Prop -> Prop
-modusTollens (p :->: q) (z) 
+modusTollens (p :->: q) z
     | q == (~) z = (~) p
     | otherwise = F
-modusTollens (z) (p :->: q) = modusTollens (p :->: q) (z) 
+modusTollens z (p :->: q) = modusTollens (p :->: q) z
 modusTollens _ _ = F
 
 silogismeHipotetik ::Prop -> Prop -> Prop
-silogismeHipotetik (p :->: q) (z :->: r) 
-    | q == z = (p :->: r)
-    | r == p = (z :->: q)
+silogismeHipotetik (p :->: q) (z :->: r)
+    | q == z = p :->: r
+    | r == p = z :->: q
     | otherwise = F
 silogismeHipotetik _ _ = F
 
-silogismeDisjungtif ::Prop -> Prop -> Prop 
-silogismeDisjungtif (p :|: q) (z) 
+silogismeDisjungtif ::Prop -> Prop -> Prop
+silogismeDisjungtif (p :|: q) z
     | p == (~) z = q
     | otherwise = F
-silogismeDisjungtif (z) (p :|: q) = silogismeDisjungtif (p :|: q) (z) 
+silogismeDisjungtif z (p :|: q) = silogismeDisjungtif (p :|: q) z
 silogismeDisjungtif _  _ = F
 
 simplifikasi :: Prop ->  Prop
 simplifikasi (p :&: q) = p
 
-resolusi :: Prop -> Prop -> Prop 
-resolusi (p :|: q) (z :|: r) 
+resolusi :: Prop -> Prop -> Prop
+resolusi (p :|: q) (z :|: r)
     | z == (~) p = q :|: r
-    | otherwise = F 
+    | otherwise = F
+resolusi _ _ = F
+
+pairwise :: [a] -> [(a, a)]
+pairwise [] = []
+pairwise (x:xs) = map (\y -> (x, y)) xs ++ pairwise xs
+
+computeSolution :: (Prop,Prop) -> [Prop]
+computeSolution x = filter (/= F) lst where
+    lst = map ($ x) (fmap uncurry [modusTollens,modusPonens,silogismeHipotetik,silogismeDisjungtif,resolusi])
+
+flattenSolution :: [Prop] -> [Prop]
+flattenSolution x = concatMap computeSolution (pairwise x)
+
+calculateSolution :: [Prop] -> Prop -> Bool
+calculateSolution premises hyp | hyp `elem` (premises ++ flattenSolution premises) = True
+                       | premises == flattenSolution premises = False
+                       | otherwise = calculateSolution (premises ++ flattenSolution premises) hyp
+
