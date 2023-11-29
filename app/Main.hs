@@ -12,7 +12,6 @@ import Rules
 
 main :: IO ()
 main = hspec do
-    describe "Algo-1" do
         describe "Test individual rules" do
             it "Modus Ponens Rule OK" do 
                 calculateSolution [Var "P" :->: Var "Q", Var "P"](Var "Q") `shouldBe` True
@@ -21,13 +20,24 @@ main = hspec do
 
             it "Modus Tollens Rule OK" do
                 calculateSolution [Not (Var "Q"), Var "P" :->: Var "Q" ](Not (Var "P")) `shouldBe` True
+            it "Modus Tollens Rule Not OK" do
+                calculateSolution [Not (Var "Q"), Var "P" :->: Var "Q" ](Var "P") `shouldBe` False
                 
 
             it "Silogisme Hipotetik Rule Ok" do
                 calculateSolution [Var "P",Var "P" :->: Var "Q", Var "Q":->:Var"R"](Var "R") `shouldBe` True
+            it "Silogisme Hipotetik Rule Not Ok" do
+                calculateSolution [Var "P",Var "P" :->: Var "Q", Var "Q":->:Var"R"](Var "Q" :->: Var "P") `shouldBe` False
+
+
             it "Silogisme Disjungtif Rule Ok" do
                 calculateSolution [Var "P" :|: Var "Q",Not (Var "P")](Var "Q") `shouldBe` True
+            it "Silogisme Disjungtif Rule Not Ok" do
+                calculateSolution [Var "P" :|: Var "Q",Not (Var "P")](Var "P") `shouldBe` False
+            
             it "Resolusi Rule  OK" do
                 calculateSolution [Var "P" :|: Var "Q", Not(Var "P"):|: Var "R"](Var "Q" :|: Var "R") `shouldBe` True
+            it "Resolusi Rule  Not OK" do
+                calculateSolution [Var "P" :|: Var "Q", Not(Var "P"):|: Var "R"](Var "P" :|: Var "R") `shouldBe` False
 
 
