@@ -3,6 +3,7 @@
 module Algorithm where
 
 import Rules
+import qualified Data.Set as Set
 
 pairwise :: [a] -> [(a, a)]
 pairwise [] = []
@@ -17,5 +18,5 @@ flattenSolution x = concatMap computeSolution (pairwise x)
 
 calculateSolution :: [Prop] -> Prop -> Bool
 calculateSolution premises hyp | hyp `elem` (premises ++ flattenSolution premises) = True
-                       | premises == (premises ++ flattenSolution premises)  = False
+                       | Set.fromList premises == Set.fromList (premises ++ flattenSolution premises)  = False
                        | otherwise = calculateSolution (premises ++ flattenSolution premises) hyp
