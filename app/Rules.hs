@@ -3,6 +3,10 @@
 module Rules where
 
 type Name = String
+data Predicate = Is Name 
+                | ElementOf Name
+                deriving (Eq, Ord, Show)
+
 data Prop = Var Name
           | F
           | T
@@ -11,6 +15,9 @@ data Prop = Var Name
           | Prop :&: Prop
           | Prop :->: Prop
           | Prop :<->: Prop
+          | ForAll Name Prop
+          | Exist Name Predicate
+          | Prop :~: Predicate
           deriving (Eq, Ord, Show)
 
 -- Operator
@@ -22,6 +29,8 @@ data Prop = Var Name
 (~) :: Prop -> Prop
 (~) (Not p) = p
 (~) p = Not p
+
+-- Propotional Logic Rules
 
 modusPonens :: Prop -> Prop -> Prop
 modusPonens (p :->: q) z
@@ -52,10 +61,46 @@ silogismeDisjungtif z (p :|: q) = silogismeDisjungtif (p :|: q) z
 silogismeDisjungtif _  _ = F
 
 simplifikasi :: Prop ->  Prop
+-- TODO: swap case , F case
 simplifikasi (p :&: q) = p
 
 resolusi :: Prop -> Prop -> Prop
 resolusi (p :|: q) (z :|: r)
+-- TODO: swapcase
     | z == (~) p = q :|: r
     | otherwise = F
 resolusi _ _ = F
+
+-- Predicate Logic Rules
+
+-- showPredicate :: Prop -> Predicate
+-- showPredicate (ForAll name predicate) = predicate
+
+instansiasiUniversal :: Prop -> Prop -> Prop
+instansiasiUniversal (ForAll domain p@(_ :~: predicate)) (name :~: pred@(ElementOf d)) 
+    | domain == d = name :~: predicate
+    | otherwise = F
+instansiasiUniversal (name :~: pred) (ForAll domain predicate) = instansiasiUniversal (ForAll domain predicate) (name :~: pred)  
+instansiasiUniversal _ _ = F
+
+-- instansiasiEksistensial :: Prop -> Prop
+-- instansiasiEksistensial (Exist domain predicate) = Var "C" :~: predicate
+-- instansiasiEksistensial _ _ = F
+
+generalisasiEksistensial :: Prop -> Prop -> Prop
+generalisasiEksistensial (name :~: predicate)(name2 :~: pred@(ElementOf d)) 
+    | name == name2 = (Exist d predicate)
+    | otherwise = F
+generalisasiEksistensial (name2 :~: (ElementOf d)) (name :~: predicate) = generalisasiEksistensial (name :~: predicate)(name2 :~: (ElementOf d)) 
+generalisasiEksistensial _ _ = F
+
+modusPonensUniversal :: Prop -> Prop -> Prop -> Prop
+modusPonensUniversal (ForAll domain prop@(p :->: (_:~:pred)))(name :~: predicate)(name2 :~: (ElementOf d))
+    | domain == d && name == name2 = name :~: pred
+    | otherwise = F
+modusPonensUniversal (ForAll domain prop) (name2 :~: (ElementOf d))(name :~: predicate) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
+modusPonensUniversal (name2 :~: (ElementOf d)) (ForAll domain prop) (name :~: predicate) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
+modusPonensUniversal (name2 :~: (ElementOf d)) (name :~: predicate) (ForAll domain prop) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
+modusPonensUniversal (name :~: predicate) (name2 :~: (ElementOf d)) (ForAll domain prop) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
+modusPonensUniversal (name :~: predicate) (ForAll domain prop) (name2 :~: (ElementOf d)) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
+modusPonensUniversal _ _ = F
