@@ -63,6 +63,7 @@ silogismeDisjungtif _  _ = F
 simplifikasi :: Prop ->  Prop
 -- TODO: swap case , F case
 simplifikasi (p :&: q) = p
+simplifikasi _ = F
 
 resolusi :: Prop -> Prop -> Prop
 resolusi (p :|: q) (z :|: r)
@@ -70,11 +71,6 @@ resolusi (p :|: q) (z :|: r)
     | z == (~) p = q :|: r
     | otherwise = F
 resolusi _ _ = F
-
--- Predicate Logic Rules
-
--- showPredicate :: Prop -> Predicate
--- showPredicate (ForAll name predicate) = predicate
 
 instansiasiUniversal :: Prop -> Prop -> Prop
 instansiasiUniversal (ForAll domain p@(_ :~: predicate)) (name :~: pred@(ElementOf d)) 
@@ -103,4 +99,4 @@ modusPonensUniversal (name2 :~: (ElementOf d)) (ForAll domain prop) (name :~: pr
 modusPonensUniversal (name2 :~: (ElementOf d)) (name :~: predicate) (ForAll domain prop) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
 modusPonensUniversal (name :~: predicate) (name2 :~: (ElementOf d)) (ForAll domain prop) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
 modusPonensUniversal (name :~: predicate) (ForAll domain prop) (name2 :~: (ElementOf d)) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
-modusPonensUniversal _ _ = F
+modusPonensUniversal _ _ _ = F
