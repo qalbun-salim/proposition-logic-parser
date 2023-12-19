@@ -5,6 +5,7 @@ module Rules where
 type Name = String
 data Predicate = Is Name 
                 | ElementOf Name
+                | NotPredicate Predicate
                 deriving (Eq, Ord, Show)
 
 data Prop = Var Name
@@ -95,12 +96,22 @@ generalisasiEksistensial (name2 :~: (ElementOf d)) (name :~: predicate) = genera
 generalisasiEksistensial _ _ = F
 
 modusPonensUniversal :: Prop -> Prop -> Prop -> Prop
-modusPonensUniversal (ForAll domain prop@(p :->: (_:~:pred)))(name :~: predicate)(name2 :~: (ElementOf d))
-    | domain == d && name == name2 = name :~: pred
-    | otherwise = F
-modusPonensUniversal (ForAll domain prop) (name2 :~: (ElementOf d))(name :~: predicate) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
-modusPonensUniversal (name2 :~: (ElementOf d)) (ForAll domain prop) (name :~: predicate) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
-modusPonensUniversal (name2 :~: (ElementOf d)) (name :~: predicate) (ForAll domain prop) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
-modusPonensUniversal (name :~: predicate) (name2 :~: (ElementOf d)) (ForAll domain prop) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
-modusPonensUniversal (name :~: predicate) (ForAll domain prop) (name2 :~: (ElementOf d)) = modusPonensUniversal (ForAll domain prop)(name :~: predicate)(name2 :~: (ElementOf d))
-modusPonensUniversal _ _ = F
+modusPonensUniversal (prop1)(prop2)(prop3) = 
+    let porplist = filter (/= F) (fmap extractPredicate [prop1, prop2, prop3]) 
+        finalResult = if applyRules modusPonens porplist == F then F else T
+    in finalResult
+
+
+    
+extractPredicate :: Prop -> Prop
+extractPredicate = ep where
+    ep (_ :~: Is x) = Var x
+    ep (_ :~: NotPredicate (Is x)) = Not (Var x)
+    ep (p1 :->: p2) = (ep (p1) :->: ep (p2))
+    ep (ForAll _ p) = ep p 
+    ep _ = F
+
+applyRules :: (Prop -> Prop -> Prop) -> [Prop] -> Prop
+applyRules _ [] = F
+applyRules f [x] = x
+applyRules f (x:xs) = f x (applyRules f xs)
