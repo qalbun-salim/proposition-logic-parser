@@ -2,6 +2,11 @@
 
 This program purpose to solve a propositional logic problem by applying inference rules to the given premises using functional programming approach. The inference rules are made as functions then used by the calculate function to determine whether the given hypotesis is valid for the given premises. 
 
+## Installation
+This solver can be run interactively using GHCI with tests that can be run with cabal. The installation guide are as follows:
+1. Install [GHCup](https://www.haskell.org/ghcup/).
+2. With GHCup, the installation of GHCI and cabal should have been included. To verify, you can run `ghci --version` and `cabal --version`. If cabal hasn't been installed, you can do it via command line by running `ghcup install cabal`.
+
 ## Usage
 
 Start the program.
